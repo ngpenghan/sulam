@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import javax.sound.sampled.*;
 
-public class GamePanel extends JPanel implements ActionListener, KeyListener, MouseListener {
+public class GamePanel extends JPanel implements ActionListener, KeyListener, MouseListener, MouseMotionListener {
     private final static int WIDTH = 600;
     private final static int HEIGHT = 800;
     private final static int GROUND_HEIGHT = 54; // Set to your ground.png height!
@@ -32,10 +32,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private boolean paused = false;
     private boolean muted = false;
     private int score = 0;
+    private int highScore = 0;
     private final Random random = new Random();
     private ArrayList<Rectangle> birds = new ArrayList<>();
     private ArrayList<Rectangle> poles = new ArrayList<>();
     private Clip jumpSound, hitSound, scoreSound, bgMusic;
+    private int menuAnimationCounter = 0; // For button animations
+    private Rectangle hoveredButton = null; // Track hovered button
     
     private Rectangle startButton = new Rectangle(150, 350, 300, 80);
     private Rectangle wauButton = new Rectangle(150, 450, 300, 80);
@@ -55,6 +58,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         this.setFocusable(true);
         this.addKeyListener(this);
         this.addMouseListener(this);
+        this.addMouseMotionListener(this);
         this.currentWauType = type;
 
         loadImages(type);
@@ -69,13 +73,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         int boxSize = 120;
         int startX = 80;
         int startY = 150;
-        int gap = 20;
+        int gap = 30; // Increased gap to prevent text overlap
         
         for (int i = 0; i < WauType.values().length; i++) {
             int col = i % 3;
             int row = i / 3;
             int x = startX + col * (boxSize + gap);
-            int y = startY + row * (boxSize + gap);
+            int y = startY + row * (boxSize + gap + 25); // Add extra space for text below
             wauSelectionBoxes.add(new Rectangle(x, y, boxSize, boxSize));
         }
     }
@@ -153,6 +157,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!gameStarted || gameOver || paused) return;
+        menuAnimationCounter++;
         velocity += GRAVITY;
         y += velocity;
 
@@ -293,23 +298,30 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         }
         
         if (showWauSelection) {
-            // Draw wau selection screen
-            g.setColor(new Color(0, 0, 0, 200));
+            // Enhanced Wau Selection Screen
+            g.setColor(new Color(0, 0, 0, 220));
             g.fillRect(0, 0, WIDTH, HEIGHT);
             
-            g.setFont(new Font("Arial", Font.BOLD, 40));
-            g.setColor(Color.WHITE);
-            g.drawString("SELECT YOUR WAU", 130, 100);
+            g.setFont(new Font("Arial", Font.BOLD, 50));
+            g.setColor(new Color(255, 215, 0));
+            g.drawString("SELECT YOUR WAU", 85, 100);
             
-            // Draw wau selection boxes
+            g.setFont(new Font("Arial", Font.PLAIN, 20));
+            g.setColor(new Color(200, 200, 200));
+            g.drawString("Choose your kite type", 175, 130);
+            
+            // Draw wau selection boxes with enhanced styling
             WauType[] wauTypes = WauType.values();
             for (int i = 0; i < wauTypes.length; i++) {
                 Rectangle box = wauSelectionBoxes.get(i);
                 
-                // Highlight selected wau
+                // Highlight selected wau with glow effect
                 if (wauTypes[i] == currentWauType) {
-                    g.setColor(new Color(255, 215, 0, 200));
-                    g.fillRoundRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10, 15, 15);
+                    g.setColor(new Color(255, 215, 0, 100));
+                    g.fillRoundRect(box.x - 8, box.y - 8, box.width + 16, box.height + 16, 20, 20);
+                    g2.setColor(new Color(255, 215, 0));
+                    g2.setStroke(new BasicStroke(5));
+                    g2.drawRoundRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10, 15, 15);
                 }
                 
                 // Draw box border
@@ -325,37 +337,78 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
                     g.setColor(Color.GRAY);
                     g.fillRoundRect(box.x + 10, box.y + 10, box.width - 20, box.height - 20, 5, 5);
                 }
+                
+                // Draw wau name below box
+                g.setFont(new Font("Arial", Font.PLAIN, 14));
+                g.setColor(Color.WHITE);
+                String wauName = wauTypes[i].toString().replace('_', ' ');
+                FontMetrics fm = g.getFontMetrics();
+                int textX = box.x + (box.width - fm.stringWidth(wauName)) / 2;
+                g.drawString(wauName, textX, box.y + box.height + 25);
             }
             
-            // Draw back button
-            g.setColor(new Color(200, 50, 50, 220));
-            g.fillRoundRect(200, 650, 200, 60, 15, 15);
+            // Draw back button with hover effect
+            Rectangle backButton = new Rectangle(200, 650, 200, 60);
+            boolean backHovered = hoveredButton != null && backButton.contains(hoveredButton);
+            g.setColor(backHovered ? new Color(220, 80, 80, 240) : new Color(200, 50, 50, 220));
+            g.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 20, 20);
             g.setColor(Color.WHITE);
+            g2.setStroke(new BasicStroke(backHovered ? 4 : 3));
+            g2.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 20, 20);
+            
             g.setFont(new Font("Arial", Font.BOLD, 30));
+            g.setColor(Color.WHITE);
             g.drawString("BACK", 260, 690);
-            
         } else if (!gameStarted && !readyToStart) {
-            // Draw Start Button
-            g.setColor(new Color(34, 139, 34, 220));
-            g.fillRoundRect(startButton.x, startButton.y, startButton.width, startButton.height, 20, 20);
+            // Enhanced Main Menu Screen
+            g.setColor(new Color(0, 0, 0, 100));
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            // Title
+            g.setFont(new Font("Arial", Font.BOLD, 60));
+            g.setColor(new Color(0, 0, 0, 200));
+            g.drawString("WAU BULAN", 132, 152);
+            g.setColor(new Color(255, 215, 0));
+            g.drawString("WAU BULAN", 130, 150);
+            
+            // Subtitle
+            g.setFont(new Font("Arial", Font.ITALIC, 24));
+            g.setColor(new Color(200, 200, 200));
+            g.drawString("A Traditional Malaysian Game", 155, 190);
+            
+            // Score display
+            g.setFont(new Font("Arial", Font.BOLD, 28));
             g.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(startButton.x, startButton.y, startButton.width, startButton.height, 20, 20);
+            g.drawString("Best Score: " + highScore, 170, 230);
+            
+            // Start Button with hover effect
+            boolean startHovered = hoveredButton != null && startButton.contains(hoveredButton);
+            g.setColor(startHovered ? new Color(50, 180, 50, 240) : new Color(34, 139, 34, 220));
+            g.fillRoundRect(startButton.x, startButton.y, startButton.width, startButton.height, 25, 25);
+            g.setColor(Color.WHITE);
+            g2.setStroke(new BasicStroke(startHovered ? 4 : 3));
+            g2.drawRoundRect(startButton.x, startButton.y, startButton.width, startButton.height, 25, 25);
+            
+            g.setFont(new Font("Arial", Font.BOLD, 45));
+            g.setColor(Color.WHITE);
+            g.drawString("START GAME", 155, 410);
+            
+            // Choose Wau Button with hover effect
+            boolean wauHovered = hoveredButton != null && wauButton.contains(hoveredButton);
+            g.setColor(wauHovered ? new Color(100, 160, 220, 240) : new Color(70, 130, 180, 220));
+            g.fillRoundRect(wauButton.x, wauButton.y, wauButton.width, wauButton.height, 25, 25);
+            g.setColor(Color.WHITE);
+            g2.setStroke(new BasicStroke(wauHovered ? 4 : 3));
+            g2.drawRoundRect(wauButton.x, wauButton.y, wauButton.width, wauButton.height, 25, 25);
             
             g.setFont(new Font("Arial", Font.BOLD, 40));
             g.setColor(Color.WHITE);
-            g.drawString("START GAME", 165, 400);
+            g.drawString("CHOOSE WAU", 160, 500);
             
-            // Draw Wau Selection Button
-            g.setColor(new Color(70, 130, 180, 220));
-            g.fillRoundRect(wauButton.x, wauButton.y, wauButton.width, wauButton.height, 20, 20);
-            g.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(wauButton.x, wauButton.y, wauButton.width, wauButton.height, 20, 20);
-            
-            g.setFont(new Font("Arial", Font.BOLD, 40));
-            g.setColor(Color.WHITE);
-            g.drawString("CHOOSE WAU", 165, 500);
+            // Instructions
+            g.setFont(new Font("Arial", Font.PLAIN, 18));
+            g.setColor(new Color(200, 200, 200));
+            g.drawString("SPACE: Jump | P: Pause | M: Mute", 130, 740);
         }
         
         if (readyToStart && !gameStarted && !showWauSelection) {
@@ -378,29 +431,51 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         }
         
         if (gameOver && !showWauSelection) {
-            g.setFont(new Font("Arial", Font.BOLD, 50));
-            g.setColor(Color.BLACK);
-            g.drawString("GAME OVER", 152, 302);
-            g.setColor(Color.RED);
-            g.drawString("GAME OVER", 150, 300);
+            // Game Over Screen with semi-transparent overlay
+            g.setColor(new Color(0, 0, 0, 150));
+            g.fillRect(0, 0, WIDTH, HEIGHT);
             
-            // Draw Restart Button
-            g.setColor(new Color(255, 140, 0, 220));
-            g.fillRoundRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height, 20, 20);
-            g.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height, 20, 20);
+            g.setFont(new Font("Arial", Font.BOLD, 60));
+            g.setColor(new Color(255, 0, 0, 255));
+            g.drawString("GAME OVER", 115, 250);
             
-            g.setFont(new Font("Arial", Font.BOLD, 35));
+            // Score display
+            g.setFont(new Font("Arial", Font.BOLD, 40));
             g.setColor(Color.WHITE);
-            g.drawString("RESTART", 210, 470);
+            g.drawString("Score: " + score, 180, 320);
             
-            // Draw Wau Selection Button below Restart
-            g.setColor(new Color(70, 130, 180, 220));
-            g.fillRoundRect(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height, 20, 20);
+            // High score update
+            if (score > highScore) {
+                highScore = score;
+                g.setColor(new Color(255, 215, 0));
+                g.setFont(new Font("Arial", Font.BOLD, 32));
+                g.drawString("NEW RECORD!", 165, 370);
+            } else {
+                g.setColor(new Color(200, 200, 200));
+                g.setFont(new Font("Arial", Font.PLAIN, 28));
+                g.drawString("Best: " + highScore, 200, 370);
+            }
+            
+            // Restart Button with hover effect
+            boolean restartHovered = hoveredButton != null && restartButton.contains(hoveredButton);
+            g.setColor(restartHovered ? new Color(255, 160, 20, 240) : new Color(255, 140, 0, 220));
+            g.fillRoundRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height, 25, 25);
             g.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height, 20, 20);
+            g2.setStroke(new BasicStroke(restartHovered ? 4 : 3));
+            g2.drawRoundRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height, 25, 25);
+            
+            g.setFont(new Font("Arial", Font.BOLD, 40));
+            g.setColor(Color.WHITE);
+            g.drawString("RESTART", 210, 475);
+            
+            // Choose Wau Button
+            Rectangle wauButton2 = new Rectangle(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height);
+            boolean wauHovered2 = hoveredButton != null && wauButton2.contains(hoveredButton);
+            g.setColor(wauHovered2 ? new Color(100, 160, 220, 240) : new Color(70, 130, 180, 220));
+            g.fillRoundRect(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height, 25, 25);
+            g.setColor(Color.WHITE);
+            g2.setStroke(new BasicStroke(wauHovered2 ? 4 : 3));
+            g2.drawRoundRect(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height, 25, 25);
             
             g.setFont(new Font("Arial", Font.BOLD, 35));
             g.setColor(Color.WHITE);
@@ -552,5 +627,46 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     }
     @Override public void mouseReleased(MouseEvent e) {}
     @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {
+        hoveredButton = null;
+        repaint();
+    }
+    
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        int mouseX = e.getX();
+        int mouseY = e.getY();
+        
+        Rectangle oldHovered = hoveredButton;
+        hoveredButton = null;
+        
+        // Check which button is being hovered over
+        if (!gameStarted && !readyToStart) {
+            if (startButton.contains(mouseX, mouseY)) {
+                hoveredButton = startButton;
+            } else if (wauButton.contains(mouseX, mouseY)) {
+                hoveredButton = wauButton;
+            }
+        } else if (gameOver) {
+            if (restartButton.contains(mouseX, mouseY)) {
+                hoveredButton = restartButton;
+            } else if (new Rectangle(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height).contains(mouseX, mouseY)) {
+                hoveredButton = new Rectangle(wauButton.x, wauButton.y + 70, wauButton.width, wauButton.height);
+            }
+        } else if (showWauSelection) {
+            Rectangle backButton = new Rectangle(200, 650, 200, 60);
+            if (backButton.contains(mouseX, mouseY)) {
+                hoveredButton = backButton;
+            }
+        }
+        
+        if ((oldHovered == null && hoveredButton != null) || 
+            (oldHovered != null && hoveredButton == null) ||
+            (oldHovered != hoveredButton)) {
+            repaint();
+        }
+    }
+    
+    @Override
+    public void mouseDragged(MouseEvent e) {}
 }
