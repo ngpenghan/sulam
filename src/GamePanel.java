@@ -85,9 +85,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
             ClassLoader cl = getClass().getClassLoader();
             wauImage = new ImageIcon(cl.getResource(type.image)).getImage();
             try {
-                bgImg = new ImageIcon(cl.getResource("background1.png")).getImage();
+                bgImg = new ImageIcon(cl.getResource("background.png")).getImage();
             } catch (Exception ex) {
-                System.err.println("background1.png not found, falling back to background.png");
+                System.err.println("background.png not found");
                 bgImg = new ImageIcon(cl.getResource("background.png")).getImage();
             }
             groundImg = new ImageIcon(cl.getResource("ground.png")).getImage();
@@ -155,12 +155,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         if (!gameStarted || gameOver || paused) return;
         velocity += GRAVITY;
         y += velocity;
-
-        // Parallax scrolling
-        bgOffset -= 2; // slower than obstacles
-        groundOffset -= OBSTACLE_SPEED;
-        if (bgOffset <= -WIDTH) bgOffset += WIDTH;
-        if (groundOffset <= -WIDTH) groundOffset += WIDTH;
 
         for (int i = 0; i < birds.size(); i++) {
             birds.get(i).x -= OBSTACLE_SPEED;
@@ -230,10 +224,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         g.setColor(new Color(135, 206, 235)); // sky blue fallback
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // Draw scrolling background (tile twice for wrap)
+        // Draw static background
         if (bgImg != null) {
-            g.drawImage(bgImg, bgOffset, 0, WIDTH, HEIGHT, null);
-            g.drawImage(bgImg, bgOffset + WIDTH, 0, WIDTH, HEIGHT, null);
+            g.drawImage(bgImg, 0, 0, WIDTH, HEIGHT, null);
         }
 
         for (Rectangle r : birds) {
@@ -255,9 +248,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         g.drawImage(wauImage, x, y, WAW_WIDTH, WAW_HEIGHT, null);
 
         int groundY = HEIGHT - GROUND_HEIGHT;
-        // Draw scrolling ground (tile twice for wrap)
-        g.drawImage(groundImg, groundOffset, groundY, WIDTH, GROUND_HEIGHT, null);
-        g.drawImage(groundImg, groundOffset + WIDTH, groundY, WIDTH, GROUND_HEIGHT, null);
+        // Draw ground
+        g.drawImage(groundImg, 0, groundY, WIDTH, GROUND_HEIGHT, null);
 
         // DEBUG: Hitboxes
         Graphics2D g2 = (Graphics2D) g;
