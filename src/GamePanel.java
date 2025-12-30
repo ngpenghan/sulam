@@ -9,9 +9,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private final static int WIDTH = 600;
     private final static int HEIGHT = 800;
     private final static int GROUND_HEIGHT = 54; // Set to your ground.png height!
-    private final static int POLE_WIDTH = 320;   // Very wide pipe effect!
-    private final static int POLE_HEIGHT = 525;  // Tall!
-    private final static int POLE_OVERLAP = 50;  // Amount pole sinks into ground for perfect "rooted" appearance
+    private final static int POLE_WIDTH = 300;   // Very wide pipe effect!
+    private final static int POLE_HEIGHT = 500;  // Tall!
+    private final static int POLE_OVERLAP = 70;  // Amount pole sinks into ground for perfect "rooted" appearance
 
     private final static int GRAVITY = 1;
     private final static int JUMP_VELOCITY = -12;
@@ -50,7 +50,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
 
     // --- HITBOX TUNING VARIABLES ---
     // Adjust this to cut more or less transparency from the top of the pole image
-    private final int POLE_TOP_CUT = 140; 
+    private final int POLE_TOP_CUT = 100; 
     private final int POLE_BOTTOM_CUT = 30;
 
     public GamePanel(WauType type) {
@@ -96,7 +96,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
             }
             groundImg = new ImageIcon(cl.getResource("ground.png")).getImage();
             birdImg = new ImageIcon(cl.getResource("birds.png")).getImage();
-            poleImg = new ImageIcon(cl.getResource("lightpole.png")).getImage();
+            poleImg = new ImageIcon(cl.getResource("coconut.png")).getImage();
         } catch (Exception e) {
             System.err.println("Image loading failed: " + e.getMessage());
         }
