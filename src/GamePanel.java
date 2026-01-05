@@ -10,18 +10,19 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private final static int HEIGHT = 800;
     private final static int GROUND_HEIGHT = 54; // Set to your ground.png height!
     private final static int POLE_WIDTH = 300;   // Very wide pipe effect!
-    private final static int POLE_HEIGHT = 500;  // Tall!
+    private final static int POLE_HEIGHT = 600;  // Tall!
     private final static int POLE_OVERLAP = 70;  // Amount pole sinks into ground for perfect "rooted" appearance
 
-    private final static int GRAVITY = 1;
-    private final static int JUMP_VELOCITY = -12;
-    private final static int OBSTACLE_SPEED = 4;
+    private final static double GRAVITY = 0.3;
+    private final static double JUMP_VELOCITY = -4;
+    private final static int OBSTACLE_SPEED = 3;
     private final static int BIRD_WIDTH = 320;
-    private final static int MIN_OBSTACLE_HEIGHT = 90, MAX_OBSTACLE_HEIGHT = 350;
-    private final static int GAP = 400;
+    private final static int MIN_OBSTACLE_HEIGHT = 200, MAX_OBSTACLE_HEIGHT = 350;
+    private final static int GAP = 20;
     private final static int WAW_WIDTH = 130, WAW_HEIGHT = 130;
 
-    private int x = 100, y = 300, velocity = 0;
+    private int x = 100, y = 300;
+    private double velocity = 0;
     private int bgOffset = 0;
     private int groundOffset = 0;
     private Timer timer;
@@ -149,8 +150,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     void spawnObstacles() {
         int birdsHeight = random.nextInt(MAX_OBSTACLE_HEIGHT - MIN_OBSTACLE_HEIGHT + 1) + MIN_OBSTACLE_HEIGHT;
         birds.add(new Rectangle(WIDTH, 0, BIRD_WIDTH, birdsHeight));
-        // Stand the pole so it "sinks" POLE_OVERLAP px into ground/grass
-        int poleY = (HEIGHT - GROUND_HEIGHT) - (POLE_HEIGHT - POLE_OVERLAP);
+        // Random gap between 40 and 120 pixels
+        int randomGap = random.nextInt(81) + 40; // 40 to 120
+        int poleY = birdsHeight + randomGap;
         poles.add(new Rectangle(WIDTH, poleY, POLE_WIDTH, POLE_HEIGHT));
     }
 
@@ -164,9 +166,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         for (int i = 0; i < birds.size(); i++) {
             birds.get(i).x -= OBSTACLE_SPEED;
             poles.get(i).x -= OBSTACLE_SPEED;
-            if (birds.get(i).x + BIRD_WIDTH == x) {
+            if (birds.get(i).x + BIRD_WIDTH < x && birds.get(i).x + BIRD_WIDTH + OBSTACLE_SPEED >= x) {
                 score++;
                 playSound(scoreSound);
+                if (!muted) bgMusic.start();
                 try { Thread.sleep(80); } catch (InterruptedException ex) {}
             }
         }
