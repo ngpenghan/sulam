@@ -18,7 +18,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private final static int OBSTACLE_SPEED = 4;
     private final static int BIRD_WIDTH = 320;
     private final static int MIN_OBSTACLE_HEIGHT = 90, MAX_OBSTACLE_HEIGHT = 350;
-    private final static int GAP = 240;
+    private final static int GAP = 400;
     private final static int WAW_WIDTH = 130, WAW_HEIGHT = 130;
 
     private int x = 100, y = 300, velocity = 0;
