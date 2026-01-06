@@ -9,14 +9,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private final static int WIDTH = 600;
     private final static int HEIGHT = 800;
     private final static int GROUND_HEIGHT = 54; // Set to your ground.png height!
-    private final static int POLE_WIDTH = 300;   // Very wide pipe effect!
+    private final static int POLE_WIDTH = 220;   // Very wide pipe effect!
     private final static int POLE_HEIGHT = 600;  // Tall!
     private final static int POLE_OVERLAP = 70;  // Amount pole sinks into ground for perfect "rooted" appearance
 
-    private final static double GRAVITY = 0.3;
+    private final static double GRAVITY = 0.15;
     private final static double JUMP_VELOCITY = -4;
     private final static int OBSTACLE_SPEED = 3;
-    private final static int BIRD_WIDTH = 320;
+    private final static int BIRD_WIDTH = 240;
     private final static int MIN_OBSTACLE_HEIGHT = 200, MAX_OBSTACLE_HEIGHT = 350;
     private final static int GAP = 20;
     private final static int WAW_WIDTH = 130, WAW_HEIGHT = 130;
