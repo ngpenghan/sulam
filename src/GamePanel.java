@@ -30,6 +30,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private Timer timer;
     private final Random random = new Random();
     private boolean gameOver = false, gameStarted = false, readyToStart = false, paused = false, muted = false;
+    private boolean showNewRecordText = false; 
 
     // --- ASSETS ---
     private Image wauImage, bgImg, birdImg, poleImg, groundImg;
@@ -188,7 +189,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private void endGame() {
         playSound(hitSound); gameOver = true;
         if (bgMusic != null) bgMusic.stop();
-        if (score > highScore) highScore = score;
+        if (score > highScore) {
+            highScore = score;
+            showNewRecordText = true; 
+        } else {
+            showNewRecordText = false;
+        }
     }
 
     // --- PAINTING ---
@@ -233,13 +239,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         else if (gameOver) drawGameOverMenu(g, g2);
     }
 
-    // --- HIGH VISIBILITY DETAILS PAGE ---
-
     private void drawWauDetailsPage(Graphics2D g2, Graphics g, WauType selectedWau) {
         int topX = 60, topY = 100, topW = WIDTH - 120, topH = 220;
         
-        // Title Box (Preview)
-        g.setColor(new Color(0, 0, 0, 180)); // Darker background for contrast
+        g.setColor(new Color(0, 0, 0, 180)); 
         g.fillRoundRect(topX, topY, topW, topH, 28, 28);
         g2.setColor(new Color(255, 215, 0));
         g2.setStroke(new BasicStroke(4));
@@ -255,20 +258,18 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         String name = selectedWau.getDisplayName();
         g.drawString(name, topX + (topW - g.getFontMetrics().stringWidth(name)) / 2, topY + topH - 25);
 
-        // Description Box
         int bY = topY + topH + 30, bH = 300;
-        g.setColor(new Color(0, 0, 0, 200)); // Solid dark background to make text pop
+        g.setColor(new Color(0, 0, 0, 200)); 
         g.fillRoundRect(topX, bY, topW, bH, 28, 28);
         g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(2));
         g2.drawRoundRect(topX, bY, topW, bH, 28, 28);
 
-        g.setFont(new Font("Arial", Font.BOLD, 26)); // Bold heading
-        g.setColor(new Color(255, 215, 0)); // Gold title inside box
+        g.setFont(new Font("Arial", Font.BOLD, 26)); 
+        g.setColor(new Color(255, 215, 0)); 
         g.drawString("History & Ability", topX + 24, bY + 45);
 
-        // Body Text
-        g.setFont(new Font("Arial", Font.BOLD, 17)); // Increased weight for readability
+        g.setFont(new Font("Arial", Font.BOLD, 17)); 
         FontMetrics fm = g.getFontMetrics();
         wauDetailScrollMax = Math.max(0, computeWrappedHeight(selectedWau.getDetails(), fm, topW - 48, 24) - (bH - 80));
         
@@ -285,7 +286,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
             StringBuilder sb = new StringBuilder();
             for (String word : raw.split(" ")) {
                 if (g.getFontMetrics().stringWidth(sb.toString() + word) > maxWidth) {
-                    // Draw a subtle shadow for maximum visibility
                     g.setColor(Color.BLACK); g.drawString(sb.toString(), x + 1, curY + 1);
                     g.setColor(Color.WHITE); g.drawString(sb.toString(), x, curY);
                     curY += lineHeight; sb.setLength(0);
@@ -299,7 +299,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         return curY;
     }
 
-    // --- UTILITIES ---
     private int computeWrappedHeight(String text, FontMetrics fm, int maxWidth, int lineHeight) {
         int h = 0;
         for (String raw : text.split("\\n")) {
@@ -358,7 +357,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         clip.setFramePosition(0); clip.start();
     }
 
-    // --- UI DRAWING ---
     private void drawSelectionOverlay(Graphics g, Graphics2D g2) {
         g.setColor(new Color(0, 0, 0, 220)); g.fillRect(0, 0, WIDTH, HEIGHT);
         WauType selectedWau = WauType.values()[wauSelectedIndex];
@@ -366,15 +364,29 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         else {
             g.setFont(new Font("Arial", Font.BOLD, 38)); g.setColor(new Color(255, 215, 0)); g.drawString("SELECT YOUR WAU", 110, 35);
             int pSize = 180, pX = (WIDTH - pSize) / 2;
+            
+            g.setColor(Color.YELLOW);
+            g2.setStroke(new BasicStroke(4));
+            g2.drawRoundRect(pX, 60, pSize, pSize, 24, 24);
             g.setColor(new Color(255, 255, 255, 30)); g.fillRoundRect(pX, 60, pSize, pSize, 24, 24);
+            
             try { g.drawImage(new ImageIcon(getClass().getClassLoader().getResource(selectedWau.image)).getImage(), pX + 18, 78, pSize - 36, pSize - 36, null); } catch (Exception e) {}
             g.setFont(new Font("Arial", Font.BOLD, 28)); g.setColor(Color.WHITE);
             String name = selectedWau.getDisplayName(); g.drawString(name, pX + (pSize - g.getFontMetrics().stringWidth(name)) / 2, 288);
+            
             Shape old = g.getClip(); g.setClip(40, 320, WIDTH - 80, 320);
             for (int i = 0; i < WauType.values().length; i++) {
                 Rectangle box = wauSelectionBoxes.get(i); int drawY = box.y - wauScrollOffset;
-                if (i == wauSelectedIndex) { g.setColor(new Color(255, 215, 0, 100)); g.fillRoundRect(box.x - 8, drawY - 8, box.width + 16, box.height + 16, 20, 20); }
-                g.setColor(Color.WHITE); g2.drawRoundRect(box.x, drawY, box.width, box.height, 10, 10);
+                
+                if (i == wauSelectedIndex) {
+                    g.setColor(Color.YELLOW);
+                    g2.setStroke(new BasicStroke(4));
+                } else {
+                    g.setColor(Color.WHITE);
+                    g2.setStroke(new BasicStroke(2));
+                }
+                g2.drawRoundRect(box.x, drawY, box.width, box.height, 10, 10);
+                
                 try { g.drawImage(new ImageIcon(getClass().getClassLoader().getResource(WauType.values()[i].image)).getImage(), box.x + 10, drawY + 10, box.width - 20, box.height - 20, null); } catch (Exception e) {}
             }
             g.setClip(old);
@@ -384,8 +396,18 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
 
     private void drawMainMenu(Graphics g, Graphics2D g2) {
         g.setColor(new Color(0, 0, 0, 100)); g.fillRect(0, 0, WIDTH, HEIGHT);
+        
         g.setFont(new Font("Arial", Font.BOLD, 60)); g.setColor(Color.BLACK); g.drawString("WAU BULAN", 132, 152);
         g.setColor(new Color(255, 215, 0)); g.drawString("WAU BULAN", 130, 150);
+        
+        g.setFont(new Font("Arial", Font.ITALIC, 24)); g.setColor(Color.LIGHT_GRAY);
+        String subtitle = "A Traditional Malaysian Game";
+        g.drawString(subtitle, (WIDTH - g.getFontMetrics().stringWidth(subtitle)) / 2, 190);
+        
+        g.setFont(new Font("Arial", Font.BOLD, 30)); g.setColor(Color.WHITE);
+        String best = "Best Score: " + highScore;
+        g.drawString(best, (WIDTH - g.getFontMetrics().stringWidth(best)) / 2, 235);
+        
         g.setColor(new Color(34, 139, 34, 220)); g.fillRoundRect(startButton.x, startButton.y, startButton.width, startButton.height, 25, 25);
         g.setColor(new Color(70, 130, 180, 220)); g.fillRoundRect(wauButton.x, wauButton.y, wauButton.width, wauButton.height, 25, 25);
         g.setColor(Color.WHITE); g.setFont(new Font("Arial", Font.BOLD, 45)); g.drawString("START GAME", 155, 410);
@@ -395,11 +417,27 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     private void drawGameOverMenu(Graphics g, Graphics2D g2) {
         g.setColor(new Color(0, 0, 0, 150)); g.fillRect(0, 0, WIDTH, HEIGHT);
         g.setFont(new Font("Arial", Font.BOLD, 60)); g.setColor(Color.RED); g.drawString("GAME OVER", 115, 250);
+        
         g.setFont(new Font("Arial", Font.BOLD, 40)); g.setColor(Color.WHITE);
         String s = "Score: " + score; g.drawString(s, (WIDTH - g.getFontMetrics().stringWidth(s)) / 2, 350);
+        
+        // --- Requirement 3: Best Score / New Record Logic (Updated to Yellow) ---
+        String bestStr = showNewRecordText ? "New Record!" : "Best: " + highScore;
+        
+        // Set color to yellow if it is a new record
+        if (showNewRecordText) {
+            g.setColor(Color.YELLOW);
+        } else {
+            g.setColor(Color.WHITE);
+        }
+        
+        g.setFont(new Font("Arial", Font.BOLD, 28));
+        g.drawString(bestStr, (WIDTH - g.getFontMetrics().stringWidth(bestStr)) / 2, 400);
+
         g.setColor(new Color(255, 140, 0, 220)); g.fillRoundRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height, 25, 25);
         g.setColor(new Color(70, 130, 180, 220)); g.fillRoundRect(gameOverWauButton.x, gameOverWauButton.y, gameOverWauButton.width, gameOverWauButton.height, 25, 25);
-        g.setColor(Color.WHITE); g.drawString("RESTART", 210, 475); g.drawString("CHOOSE WAU", 160, 575);
+        g.setColor(Color.WHITE); g.setFont(new Font("Arial", Font.BOLD, 40));
+        g.drawString("RESTART", 210, 475); g.drawString("CHOOSE WAU", 160, 575);
     }
 
     private void drawReadyPrompt(Graphics g) {
@@ -416,7 +454,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
         g.drawString("SELECT", wauSelectButton.x + (wauSelectButton.width - g.getFontMetrics().stringWidth("SELECT")) / 2, wauSelectButton.y + 40);
     }
 
-    // --- INPUT HANDLING ---
     @Override public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (readyToStart && !gameStarted) {
@@ -434,12 +471,20 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
             else if (wauSelectButton.contains(mouseX, mouseY)) { if (showWauDetails) { currentWauType = WauType.values()[wauSelectedIndex]; loadImages(currentWauType); showWauSelection = false; showWauDetails = false; } else showWauDetails = true; }
             else if (!showWauDetails) { for (int i = 0; i < WauType.values().length; i++) { if (new Rectangle(wauSelectionBoxes.get(i).x, wauSelectionBoxes.get(i).y - wauScrollOffset, WAU_BOX_SIZE, WAU_BOX_SIZE).contains(mouseX, mouseY)) wauSelectedIndex = i; } }
         } else if (!readyToStart && !gameStarted) { if (startButton.contains(mouseX, mouseY)) readyToStart = true; if (wauButton.contains(mouseX, mouseY)) { showWauSelection = true; syncSelectedIndexWithCurrent(); } }
-        else if (gameOver) { if (restartButton.contains(mouseX, mouseY)) { gameOver = false; gameStarted = false; readyToStart = true; score = 0; y = 300; velocity = 0; obstacles.clear(); } if (gameOverWauButton.contains(mouseX, mouseY)) { showWauSelection = true; syncSelectedIndexWithCurrent(); } }
+        else if (gameOver) { if (restartButton.contains(mouseX, mouseY)) { gameOver = false; gameStarted = false; readyToStart = true; score = 0; y = 300; velocity = 0; obstacles.clear(); showNewRecordText = false; } if (gameOverWauButton.contains(mouseX, mouseY)) { showWauSelection = true; syncSelectedIndexWithCurrent(); } }
         repaint();
     }
 
     @Override public void mousePressed(MouseEvent e) { handlePointerClick(e.getX(), e.getY()); }
-    @Override public void mouseMoved(MouseEvent e) { hoveredButton = new Rectangle(e.getX(), e.getY(), 1, 1); repaint(); }
+    
+    @Override public void mouseMoved(MouseEvent e) { 
+        hoveredButton = new Rectangle(e.getX(), e.getY(), 1, 1); 
+        if (gameOver && showNewRecordText) {
+            showNewRecordText = false;
+        }
+        repaint(); 
+    }
+    
     @Override public void mouseClicked(MouseEvent e) {}
     @Override public void mouseReleased(MouseEvent e) {}
     @Override public void mouseEntered(MouseEvent e) {}
