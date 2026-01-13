@@ -187,6 +187,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener, Mo
     }
 
     private void endGame() {
+        obstaclesPassed=0;
         playSound(hitSound); gameOver = true;
         if (bgMusic != null) bgMusic.stop();
         if (score > highScore) {
